@@ -1,102 +1,183 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <script src="https://unpkg.com/rxjs@7.1.0/dist/bundles/rxjs.umd.min.js"></script>
-        <style>
-            html,
-            body {
-              padding: 0;
-              margin: 0;
-            }
-            
-            html {
-              font-family: 'Roboto', sans-serif;
-              font-weight: normal;
-              letter-spacing: 0.2px;
-              -webkit-font-smoothing: antialiased;
-              -moz-osx-font-smoothing: grayscale;
-            }
-            
-            body {
-              background: #f1f2f5;
-            }
-            
-            #app {
-                padding-top: 100px;
-                text-align: center;
-            }
-            
-            #input {
-                margin: 20px auto;
-                border-radius: 4px;
-                height: 25px;
-                width: 200px;
-                padding: 5px;
-                border: 1px solid black;
-                font-size: 24px;
-            }
-            
-            #response-container,
-            #cancel-prev-request-container {
-                margin: 10px;
-                font-size: 16px;
-            
-            }
-            #button {
-                position: relative;
-                background-color: #4CAF50;
-                border: none;
-                font-size: 12px;
-                color: #FFFFFF;
-                padding: 10px;
-                width: 100px;
-                text-align: center;
-                -webkit-transition-duration: 0.4s;
-                transition-duration: 0.4s;
-                text-decoration: none;
-                overflow: hidden;
-                cursor: pointer;
-            }
-            
-            #button:hover,
-            #button:after {
-                background-color: #167e19;
-            }
-            
-            #button:after {
-                content: "";
-                background: #f1f1f1;
-                display: block;
-                position: absolute;
-                padding-top: 300%;
-                padding-left: 350%;
-                margin-left: -20px !important;
-                margin-top: -120%;
-                opacity: 0;
-                transition: all 0.8s
-            }
-            
-            #button:active:after {
-                padding: 0;
-                margin: 0;
-                opacity: 1;
-                transition: 0s
-            }
-        </style>
-    </head>
-    <body>
-        <div id="app">
-            <input id="input">
-            <div id="response-container"></div>
-            <div id="cancel-prev-request-container"></div>
-            <button type="button" id="button">Очистить</button>
-        </div>
-        <script>
-            const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-            const getApiResponse = (searchString) => new Promise(resolve =>
-                setTimeout(() => resolve(searchString), getRandomInt(1, 10) * 500)
-            );
-        </script>
-    </body>
+<head>
+    <script src="https://unpkg.com/rxjs@7.1.0/dist/bundles/rxjs.umd.min.js"></script>
+    <style>
+        html,
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        html {
+            font-family: 'Roboto', sans-serif;
+            font-weight: normal;
+            letter-spacing: 0.2px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            background: #f1f2f5;
+        }
+
+        #app {
+            padding-top: 100px;
+            text-align: center;
+        }
+
+        #input {
+            margin: 20px auto;
+            border-radius: 4px;
+            height: 25px;
+            width: 200px;
+            padding: 5px;
+            border: 1px solid black;
+            font-size: 24px;
+        }
+
+        #response-container,
+        #cancel-prev-request-container {
+            margin: 10px;
+            font-size: 16px;
+
+        }
+
+        #button {
+            position: relative;
+            background-color: #4CAF50;
+            border: none;
+            font-size: 12px;
+            color: #FFFFFF;
+            padding: 10px;
+            width: 100px;
+            text-align: center;
+            -webkit-transition-duration: 0.4s;
+            transition-duration: 0.4s;
+            text-decoration: none;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        #button:hover,
+        #button:after {
+            background-color: #167e19;
+        }
+
+        #button:after {
+            content: "";
+            background: #f1f1f1;
+            display: block;
+            position: absolute;
+            padding-top: 300%;
+            padding-left: 350%;
+            margin-left: -20px !important;
+            margin-top: -120%;
+            opacity: 0;
+            transition: all 0.8s
+        }
+
+        #button:active:after {
+            padding: 0;
+            margin: 0;
+            opacity: 1;
+            transition: 0s
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <input id="input">
+        <div id="response-container"></div>
+        <div id="cancel-prev-request-container"></div>
+        <button type="button" id="button">Очистить</button>
+    </div>
+    <script>
+        const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+        const getApiResponse = (searchString) => new Promise(resolve => {
+            setTimeout(() => resolve(searchString), getRandomInt(1, 10) * 500);
+        });
+
+        const { fromEvent, from } = rxjs;
+        const { pluck, switchMap, map, mergeMap, reduce } = rxjs.operators;
+
+        const button = document.querySelector("#button"),
+            input = document.querySelector("#input"),
+            responseСontainer = document.querySelector("#response-container"),
+            cancelPrevRequestContainer = document.querySelector("#cancel-prev-request-container");
+
+        //Задание 1
+
+        const clicks$ = fromEvent(button, 'click');
+        clicks$.subscribe(() => {
+            input.value = "";
+            responseСontainer.textContent = "";
+            cancelPrevRequestContainer.textContent = "";
+        });
+
+        //Задание 2
+
+        const changes$ = fromEvent(input, 'input');
+        const resolveCancelRequest = (stream) => {
+            stream
+                .pipe(
+                    pluck('target', 'value'),
+                    switchMap(value => getApiResponse(value))
+                ).subscribe((response) => {
+                    cancelPrevRequestContainer.textContent = `${response}`;
+                })
+        }
+
+        resolveCancelRequest(changes$);
+
+        //Тестирование resolveCancelRequest
+
+        const testResolveCancelRequest = (stream) => {
+            let times = [3000, 2000, 100, 100];
+            console.log('Тестирование промежутков времени для resolveCancelRequest:')
+            const testApiResponse = (item) => new Promise(resolve => {
+                const { value, i } = item;
+                setTimeout(() => {
+                    resolve(item);
+                    console.log(`Ответ от ${i + 1} элемента отправлен через ${value} мс`)
+                }, item.value)
+            });
+
+            from(times)
+                .pipe(
+                    map((value, i) => ({ value, i })),
+                    switchMap((item) => testApiResponse(item))
+                ).subscribe((res) => {
+                    const { value, i } = res;
+                    console.log(`Принят ответ от ${i + 1} элемента через ${value} мс`)
+                })
+        }
+
+        testResolveCancelRequest(changes$);
+
+        //Задание 3
+
+        const resolveRaceCondition = (stream) => {
+            let prevLength;
+            stream
+                .pipe(
+                    pluck('target', 'value'),
+                    mergeMap(value => getApiResponse(value))
+                ).subscribe((res) => {
+                    if (!prevLength || prevLength <= res.length) {
+                        responseСontainer.textContent = `${res}`;
+                        prevLength = res.length;
+                    }
+                })
+        }
+
+        resolveRaceCondition(changes$);
+
+
+    </script>
+</body>
+
 </html>
