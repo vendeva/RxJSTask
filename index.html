@@ -116,6 +116,9 @@
             input.value = "";
             responseСontainer.textContent = "";
             cancelPrevRequestContainer.textContent = "";
+            raceCondition.unsubscribe();
+            raceCondition = resolveRaceCondition(changes$);
+
         });
 
         //Задание 2
@@ -162,20 +165,19 @@
 
         const resolveRaceCondition = (stream) => {
             let prevLength;
-            stream
+            return stream
                 .pipe(
                     pluck('target', 'value'),
                     mergeMap(value => getApiResponse(value))
                 ).subscribe((res) => {
-                    if (!prevLength || prevLength <= res.length) {
-                        responseСontainer.textContent = `${res}`;
+                    if (!prevLength || prevLength < res.length) {
+                        responseСontainer.textContent = `${responseСontainer.textContent} ${res}`;
                         prevLength = res.length;
                     }
                 })
         }
 
-        resolveRaceCondition(changes$);
-
+        let raceCondition = resolveRaceCondition(changes$);
 
     </script>
 </body>
