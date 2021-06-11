@@ -171,7 +171,7 @@
                     mergeMap(value => getApiResponse(value))
                 ).subscribe((res) => {
                     if (!prevLength || prevLength < res.length) {
-                        responseСontainer.textContent = `${responseСontainer.textContent} ${res}`;
+                        responseСontainer.textContent = `${res}`;
                         prevLength = res.length;
                     }
                 })
